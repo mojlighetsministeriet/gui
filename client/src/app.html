@@ -1,0 +1,188 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<dom-module id="app">
+  <template>
+    <style>
+      :host {
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+        --app-menu-background-color: #364a69;
+        --app-menu-color: #fff;
+
+        display: block;
+      }
+
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
+      }
+
+      app-drawer {
+        --app-drawer-content-container: {
+          background-color: var(--app-menu-background-color);
+          color: var(--app-menu-color);
+        }
+      }
+
+      app-header {
+        color: #fff;
+        background-color: var(--app-primary-color);
+      }
+
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      app-toolbar a {
+        color: var(--app-menu-color);
+        text-decoration: none;
+      }
+
+      .drawer-list {
+        margin: 0 20px;
+      }
+
+      .drawer-list a {
+        display: block;
+        padding: 0 16px;
+        text-decoration: none;
+        color: var(--app-menu-color);
+        line-height: 40px;
+      }
+
+      .drawer-list a.iron-selected {
+        color: var(--app-menu-color);
+        font-weight: bold;
+      }
+    </style>
+
+    <app-location route="{{route}}" url-space-regex="^[[rootPath]]"></app-location>
+    <app-route route="{{route}}" pattern="[[rootPath]]:first" data="{{routeData}}"></app-route>
+    <app-route route="{{route}}" pattern="[[rootPath]]:first/:second" data="{{routeData}}"></app-route>
+
+    <app-drawer-layout fullbleed narrow="{{narrow}}">
+      <!-- Drawer content -->
+      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
+        <app-toolbar><a href="[[rootPath]]">Intranät - Möjlighetsministeriet</a></app-toolbar>
+        <iron-selector selected="[[viewName]]" attr-for-selected="name" class="drawer-list" role="navigation">
+          <a name="about" href="[[rootPath]]about">About</a>
+        </iron-selector>
+      </app-drawer>
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region>
+
+        <app-header slot="header" condenses reveals effects="waterfall">
+          <app-toolbar>
+            <div main-title>[[view.title]]</div>
+          </app-toolbar>
+        </app-header>
+
+        <iron-pages id="iron-pages" selected="[[viewName]]" attr-for-selected="name" role="main">
+          <ehr-about-view name="about"></ehr-about-view>
+          <ehr-dashboard-view name="dashboard"></ehr-dashboard-view>
+          <ehr-not-found-view name="not-found"></ehr-not-found-view>
+        </iron-pages>
+      </app-header-layout>
+    </app-drawer-layout>
+
+    <paper-toast id="system-error-toast" duration="0" text="[[systemError]]">
+      <paper-button on-click="closeSystemErrorToast">Close</paper-button>
+    </paper-toast>
+  </template>
+
+  <script>
+    class App extends Polymer.Element {
+      static get is() { return 'app'; }
+
+      static get properties() {
+        return {
+          view: Object,
+          viewName: {
+            type: String,
+            value: '',
+            reflectToAttribute: true,
+            observer: '_viewNameChanged',
+          },
+          routeData: {
+            type: Object,
+            value: {},
+            observer: '_routeChanged',
+          },
+          // This shouldn't be neccessary, but the Analyzer isn't picking up
+          // Polymer.Element#rootPath
+          rootPath: String,
+        };
+      }
+
+      _routeChanged() {
+        if (!this.routeData.first) {
+          this.routeData.first = 'dashboard';
+        }
+      }
+
+      _viewNameChanged() {
+        this.view = this.$['iron-pages'].children.namedItem(this.viewName);
+        if (!this.view) {
+          this.showViewNotFound();
+          return;
+        }
+
+        // Load view import on demand. Show not found view if fails
+        const viewFilename = this.viewName + '-view.html';
+        const resolvedViewUrl = this.resolveUrl(viewFilename);
+        Polymer.importHref(
+          resolvedViewUrl,
+          () => {
+            this.view.app = this;
+
+            if (this.view.isReady || !this.view.async) {
+              this.viewUpdated();
+            }
+          },
+          this.showViewNotFound.bind(this),
+          true
+        );
+
+        // Close a non-persistent drawer when the view & route are changed.
+        if (!this.$.drawer.persistent) {
+          this.$.drawer.close();
+        }
+      }
+
+      viewUpdated() {
+        this.notifyPath('view.title');
+      }
+
+      showViewNotFound() {
+        this.viewName = 'not-found';
+      }
+
+      showSystemError(message) {
+        this.systemError = message;
+        this.showSystemErrorToast();
+      }
+
+      showSystemErrorToast() {
+        this.$['system-error-toast'].open();
+      }
+
+      closeSystemErrorToast() {
+        this.$['system-error-toast'].close();
+      }
+    }
+
+    window.customElements.define(App.is, App);
+  </script>
+</dom-module>
