@@ -3,10 +3,11 @@ FROM golang:alpine
 ENV WORKDIR /go/src/github.com/mojlighetsministeriet/gui
 COPY . $WORKDIR
 WORKDIR $WORKDIR
-RUN apk --update add git nodejs-npm
+RUN apk --update add git nodejs-current-npm yarn
 RUN go get -t -v ./...
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
-RUN cd client && npm install && npm run build
+RUN cd client && yarn install
+RUN cd client && yarn build
 
 # Create the final docker image
 FROM scratch

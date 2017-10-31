@@ -10,7 +10,7 @@
   },
   "scripts": {
     "postinstall": "./node_modules/.bin/bower install --allow-root",
-    "lint": "npm run lint:javascript && ./node_modules/.bin/polymer lint",
+    "lint": "yarn lint:javascript && ./node_modules/.bin/polymer lint",
     "lint:javascript": "./node_modules/.bin/eslint . --ext js,html --ignore-path .gitignore",
     "test": "./node_modules/.bin/polymer test",
     "build": "./node_modules/.bin/polymer build",
