@@ -22,7 +22,8 @@
     "paper-toast": "^2.0.0",
     "paper-dialog": "^2.0.0",
     "paper-button": "^2.0.0",
-    "paper-input": "^2.0.2"
+    "paper-input": "^2.0.2",
+    "paper-card": "PolymerElements/paper-card#^2.0.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"

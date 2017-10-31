@@ -2,12 +2,50 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-request.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
 
 <dom-module id="mo-authenticate-view">
   <template>
-    <paper-input id="authenticate-email" label="E-postadress" type="email"></paper-input>
-    <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
-    <paper-button on-click="authenticate">Logga in</paper-button>
+    <style>
+      :host {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+
+      paper-card {
+        width: 20rem;
+        max-width: 100%;
+        --paper-card-header: {
+          transition: padding 0.25s ease-in-out;
+          padding: 2.7rem 3rem 0;
+        }
+      }
+
+      paper-card .card-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      @media (max-width: 320px) {
+        paper-card {
+          --paper-card-header: {
+            transition: padding 0.25s ease-in-out;
+            padding: 0.5rem 0.5rem 0;
+          }
+        }
+      }
+    </style>
+    <paper-card alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-192.png">
+      <div class="card-content">
+        <paper-input id="authenticate-email" label="E-postadress" type="email" autofocus></paper-input>
+        <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
+      </div>
+      <div class="card-actions">
+        <paper-button on-click="authenticate">Logga in</paper-button>
+      </div>
+    </paper-card>
   </template>
 
   <script>
@@ -17,6 +55,13 @@
       static get properties() {
         return {
         };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        setTimeout(() => {
+          this.$['authenticate-email'].focus();
+        }, 0);
       }
 
       authenticate() {
