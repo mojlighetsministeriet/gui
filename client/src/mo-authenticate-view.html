@@ -28,7 +28,9 @@
             password: this.$['authenticate-password'].value
           }),
           handleAs: 'json',
-          contentType: 'application/json'
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }).then((...reponse) => {
           console.log('success', ...reponse);
         }, (...error) => {
