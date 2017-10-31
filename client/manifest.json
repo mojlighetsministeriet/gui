@@ -1,20 +1,25 @@
 {
-  "name": "Intranät - Möjlighetsministeriet",
-  "short_name": "Intranät - Möjlighetsministeriet",
-  "description": "Möjlighetsministeriets intranät",
+  "name": "Internt - Möjlighetsministeriet",
+  "short_name": "Internt - Möjlighetsministeriet",
+  "description": "Se över ditt medlemsskap och dina projekt med Möjlighetsministeriets intranät",
   "start_url": "./?homescreen=1",
   "display": "standalone",
-  "theme_color": "#3f51b5",
-  "background_color": "#3f51b5",
+  "theme_color": "#C46AED",
+  "background_color": "#D7E2E7",
   "icons": [
     {
-      "src": "images/manifest/icon-192x192.png",
+      "src": "assets/manifest/mojlighetsministeriet-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "images/manifest/icon-512x512.png",
+      "src": "assets/manifest/mojlighetsministeriet-512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/manifest/mojlighetsministeriet-1024.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]

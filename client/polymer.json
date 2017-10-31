@@ -1,16 +1,12 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/app.html",
+  "shell": "src/mo-app.html",
   "fragments": [
-    "src/ehr-about-view.html",
-    "src/ehr-dashboard-view.html",
-    "src/ehr-not-found-view.html",
-    "src/ehr-patient-view.html",
-    "src/ehr-your-patients-view.html"
+    "src/mo-authenticate-view.html"
   ],
   "sources": [
     "src/**/*",
-    "images/**/*",
+    "assets/**/*",
     "bower.json"
   ],
   "extraDependencies": [

@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/mojlighetsministeriet/utils"
 )
 
 func startServer() {
@@ -20,13 +21,14 @@ func startServer() {
 		Skipper: noHTML5IfAPICallSkipper,
 	}))
 
-	// TODO: On /api/ proxy calls inside the network?
-
-	server.Logger.Fatal(server.Start(":1323"))
+	err := server.Start(":" + utils.GetEnv("PORT", "80"))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func noHTML5IfAPICallSkipper(context echo.Context) bool {
-	if strings.HasPrefix(context.Path(), "/api/") {
+	if strings.HasPrefix(context.Path(), "/api/") || strings.HasPrefix(context.Path(), "/assets/") || strings.HasPrefix(context.Path(), "/src/") || strings.HasPrefix(context.Path(), "/bower_components/") {
 		return true
 	}
 

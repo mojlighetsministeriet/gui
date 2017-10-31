@@ -1,0 +1,42 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-request.html">
+
+<dom-module id="mo-authenticate-view">
+  <template>
+    <paper-input id="authenticate-email" label="E-postadress" type="email"></paper-input>
+    <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
+    <paper-button on-click="authenticate">Logga in</paper-button>
+  </template>
+
+  <script>
+    class MoAuthenticateView extends Polymer.Element {
+      static get is() { return 'mo-authenticate-view'; }
+
+      static get properties() {
+        return {
+        };
+      }
+
+      authenticate() {
+        document.createElement('iron-request').send({
+          url: '/api/identity-provider/token',
+          method: 'POST',
+          body: JSON.stringify({
+            email: this.$['authenticate-email'].value,
+            password: this.$['authenticate-password'].value
+          }),
+          handleAs: 'json',
+          contentType: 'application/json'
+        }).then((...reponse) => {
+          console.log('success', ...reponse);
+        }, (...error) => {
+          console.error('failed', error);
+        });
+      }
+    }
+
+    window.customElements.define(MoAuthenticateView.is, MoAuthenticateView);
+  </script>
+</dom-module>
