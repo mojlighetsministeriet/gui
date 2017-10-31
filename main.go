@@ -12,8 +12,7 @@ import (
 func startServer() {
 	server := echo.New()
 
-	server.Use()
-
+	server.Use(middleware.Gzip())
 	server.Use(middleware.Static("client"))
 	server.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:    "client",
