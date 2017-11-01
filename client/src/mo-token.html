@@ -1,0 +1,104 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="mo-jwt-request.html">
+
+<dom-module id="mo-token">
+  <template>
+    <mo-jwt-request id="xhr"></mo-jwt-request>
+  </template>
+
+  <script>
+    class MoToken extends Polymer.Element {
+      static get is() { return 'mo-token'; }
+
+      static get properties() {
+        return {
+          token: {
+            type: String,
+            observer: '_tokenChanged'
+          },
+          renevalUrl: String,
+          renevalTimeout: {
+            type: Number,
+            value: 60 * 1000
+          },
+          inactivationTimeout: {
+            type: Number,
+            value: 10 * 60 * 1000
+          },
+          _renevalTimer: Object,
+          _inactivationTimer: Object,
+          _wasUnauthenticated: {
+            type: Object,
+            value: true
+          }
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+
+        this.token = window.localStorage.getItem('token');
+        if (this.token) {
+          this.renew();
+        } else {
+          window.dispatchEvent(new CustomEvent('unauthenticated'));
+        }
+
+        document.body.addEventListener('keydown', () => {
+          this._resetInactivationTimer();
+        });
+
+        document.body.addEventListener('click', () => {
+          this._resetInactivationTimer();
+        });
+
+        window.addEventListener('newtoken', (event) => {
+          this.token = event.detail.token;
+        });
+
+        this._resetInactivationTimer();
+      }
+
+      renew() {
+        this.$.xhr.send({
+          url: this.renevalUrl,
+          method: 'POST',
+          json: true
+        }).then((response) => {
+          this.token = response.token;
+          if (this.token && this._wasUnauthenticated) {
+            this._wasUnauthenticated = false;
+            window.dispatchEvent(new CustomEvent('authenticated'));
+          }
+        }, () => {
+          this.token = undefined;
+          this._wasUnauthenticated = true;
+          window.dispatchEvent(new CustomEvent('unauthenticated'));
+        });
+
+        this._renevalTimer = setTimeout(() => {
+          this.renew();
+        }, this.renevalTimeout);
+      }
+
+      _resetInactivationTimer() {
+        clearTimeout(this._inactivationTimer);
+        this._inactivationTimer = setTimeout(() => {
+          clearInterval(this._renevalTimer);
+          this.token = undefined;
+        });
+      }
+
+      _tokenChanged() {
+        if (this.token) {
+          window.localStorage.setItem('token', this.token);
+        } else {
+          window.localStorage.removeItem('token');
+        }
+      }
+    }
+
+    window.customElements.define(MoToken.is, MoToken);
+  </script>
+</dom-module>

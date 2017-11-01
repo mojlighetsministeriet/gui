@@ -1,12 +1,16 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/iron-ajax/iron-request.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
+
+<link rel="import" href="mo-styles.html">
+<link rel="import" href="mo-if.html">
+<link rel="import" href="mo-jwt-request.html">
+<link rel="import" href="mo-flipper.html">
 
 <dom-module id="mo-authenticate-view">
   <template>
-    <style>
+    <style include="mo-styles">
       :host {
         display: flex;
         align-items: center;
@@ -14,9 +18,15 @@
         height: 100%;
       }
 
-      paper-card {
+      mo-flipper {
         width: 20rem;
         max-width: 100%;
+        height: 32rem;
+      }
+
+      paper-card {
+        height: 32rem;
+
         --paper-card-header: {
           transition: padding 0.25s ease-in-out;
           padding: 2.7rem 3rem 0;
@@ -24,8 +34,8 @@
       }
 
       paper-card .card-actions {
-        display: flex;
-        justify-content: flex-end;
+        position: absolute;
+        bottom: 0;
       }
 
       @media (max-width: 320px) {
@@ -37,15 +47,38 @@
         }
       }
     </style>
-    <paper-card alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
-      <div class="card-content">
-        <paper-input id="authenticate-email" label="E-postadress" type="email" autofocus></paper-input>
-        <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
-      </div>
-      <div class="card-actions">
-        <paper-button on-click="authenticate">Logga in</paper-button>
-      </div>
-    </paper-card>
+
+    <mo-jwt-request id="xhr"></mo-jwt-request>
+
+    <mo-flipper id="authenticate-flipper">
+
+      <paper-card slot="front" alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
+        <div class="card-content">
+          <paper-input id="authenticate-email" label="E-postadress" type="email" autofocus></paper-input>
+          <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
+          <mo-if if="[[_badUsernameOrPassword]]">
+            <p class="text-error">Felaktigt användarnamn eller lösenord</p>
+          </mo-if>
+        </div>
+        <div class="card-actions">
+          <paper-button on-click="flip">Glömt lösenord?</paper-button>
+          <paper-button on-click="authenticate">Logga in</paper-button>
+        </div>
+      </paper-card>
+
+      <paper-card slot="back">
+        <div class="card-content">
+          <h1>Återställ&nbsp;lösenord</h1>
+          <p>Fyll i din e-postadress så skickas instruktioner för att återställa lösenordet till dig.</p>
+          <paper-input id="reset-email" label="E-postadress" type="email"></paper-input>
+        </div>
+        <div class="card-actions">
+          <paper-button on-click="flip">Avbryt</paper-button>
+          <paper-button on-click="authenticate">Återställ</paper-button>
+        </div>
+      </paper-card>
+
+    </mo-flipper>
   </template>
 
   <script>
@@ -54,6 +87,10 @@
 
       static get properties() {
         return {
+          _badUsernameOrPassword: {
+            type: Boolean,
+            value: false
+          }
         };
       }
 
@@ -64,22 +101,37 @@
         }, 0);
       }
 
+      flip() {
+        const flipper = this.$['authenticate-flipper'];
+        flipper.flip();
+        if (flipper.flipped) {
+          this.$['reset-email'].focus();
+        } else {
+          this.$['authenticate-email'].focus();
+        }
+      }
+
       authenticate() {
-        document.createElement('iron-request').send({
-          url: '/api/identity-provider/token',
+        this.$.xhr.send({
+          url: '../api/identity-provider/token',
           method: 'POST',
-          body: JSON.stringify({
+          json: true,
+          body: {
             email: this.$['authenticate-email'].value,
             password: this.$['authenticate-password'].value
-          }),
-          handleAs: 'json',
-          headers: {
-            'Content-Type': 'application/json'
           }
-        }).then((...reponse) => {
-          console.log('success', ...reponse);
-        }, (...error) => {
-          console.error('failed', error);
+        }).then((response) => {
+console.log('success authenticate', response);
+          this._badUsernameOrPassword = false;
+          this.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.token } }));
+        }, (response) => {
+console.log('failed authenticate', response);
+          if (response.status === 404) {
+            this._badUsernameOrPassword = true;
+            setTimeout(() => {
+              this._badUsernameOrPassword = false;
+            }, 10000);
+          }
         });
       }
     }

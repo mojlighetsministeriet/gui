@@ -1,0 +1,81 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="mo-flipper">
+  <template>
+    <style>
+      :host {
+        perspective: 100rem;
+        display: block;
+      }
+
+      :host(.back-visible) .flipper {
+        transform: rotateY(180deg);
+      }
+
+      .flipper {
+        transition: 0.6s ease-in-out;
+        transform-style: preserve-3d;
+        position: relative;
+      }
+
+      .front, .back {
+        backface-visibility: hidden;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: block;
+      }
+
+      .front {
+        z-index: 2;
+        transform: rotateY(0deg);
+      }
+
+      .back {
+        transform: rotateY(180deg);
+      }
+    </style>
+    <div class="flipper">
+      <div class="front">
+        <slot name="front"></slot>
+      </div>
+      <div class="back">
+        <slot name="back"></slot>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class MoFlipper extends Polymer.Element {
+      static get is() { return 'mo-flipper'; }
+
+      static get properties() {
+        return {
+          flipped: {
+            type: Boolean,
+            value: false,
+            observer: '_flippedChanged'
+          }
+        };
+      }
+
+      flip() {
+        this.flipped = !this.flipped;
+      }
+
+      _flippedChanged() {
+        if (this.flipped) {
+          this.classList.remove('front-visible');
+          this.classList.add('back-visible');
+        } else {
+          this.classList.add('front-visible');
+          this.classList.remove('back-visible');
+        }
+      }
+    }
+
+    window.customElements.define(MoFlipper.is, MoFlipper);
+  </script>
+</dom-module>

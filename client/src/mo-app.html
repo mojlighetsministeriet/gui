@@ -12,6 +12,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
+<link rel="import" href="mo-token.html">
 <link rel="import" href="mo-authenticate-view.html">
 
 <dom-module id="mo-app">
@@ -28,6 +29,7 @@
       }
     </style>
 
+    <mo-token reneval-url="../api/identity-provider/token/renew"></mo-token>
     <mo-authenticate-view></mo-authenticate-view>
   </template>
 
@@ -41,6 +43,15 @@
           // Polymer.Element#rootPath
           rootPath: String,
         };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+
+        // TODO: show mo-authenticate-view
+        window.addEventListener('unauthorized', () => {
+          console.error('The client is not authorized');
+        });
       }
     }
 
