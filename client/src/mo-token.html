@@ -81,7 +81,6 @@
         }, () => {
           this.token = undefined;
           this._wasUnauthenticated = true;
-          window.dispatchEvent(new CustomEvent('unauthenticated'));
         });
 
         this._renevalTimer = setTimeout(() => {
@@ -103,6 +102,7 @@
             window.localStorage.setItem('token', this.token);
           } else {
             window.localStorage.removeItem('token');
+            window.dispatchEvent(new CustomEvent('unauthenticated'));
           }
         }
       }

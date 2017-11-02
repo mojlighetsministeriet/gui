@@ -2,9 +2,11 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
+<link rel="import" href="mo-if.html">
 <link rel="import" href="mo-token.html">
 <link rel="import" href="mo-dashboard-view.html">
 <link rel="import" href="mo-authenticate-view.html">
@@ -28,7 +30,11 @@
       }
     </style>
 
-    <mo-token reneval-url="../api/identity-provider/token/renew"></mo-token>
+    <mo-if if="[[_authenticated]]">
+      <paper-button on-click="_destroyToken">Logga ut</paper-button>
+    </mo-if>
+
+    <mo-token id="token" reneval-url="../api/identity-provider/token/renew"></mo-token>
 
     <app-location
         route="{{route}}"
@@ -72,7 +78,11 @@
           subroute: String,
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
-          rootPath: String
+          rootPath: String,
+          _authenticated: {
+            type: Boolean,
+            value: false
+          }
         };
       }
 
@@ -87,12 +97,18 @@
 
         // TODO: show mo-authenticate-view
         window.addEventListener('unauthenticated', () => {
+          this._authenticated = false;
           this.view = 'authenticate';
         });
 
         window.addEventListener('authenticated', () => {
+          this._authenticated = true;
           this.view = this.routeData.view || 'dashboard';
         });
+      }
+
+      _destroyToken() {
+        this.$.token.token = undefined;
       }
 
       _routeViewChanged(view) {
