@@ -31,6 +31,10 @@
           _wasUnauthenticated: {
             type: Object,
             value: true
+          },
+          _connectedCallbackDone: {
+            type: Boolean,
+            value: false
           }
         };
       }
@@ -55,9 +59,12 @@
 
         window.addEventListener('newtoken', (event) => {
           this.token = event.detail.token;
+          this.renew();
         });
 
         this._resetInactivationTimer();
+
+        this._connectedCallbackDone = true;
       }
 
       renew() {
@@ -66,7 +73,7 @@
           method: 'POST',
           json: true
         }).then((response) => {
-          this.token = response.token;
+          this.token = response.body.token;
           if (this.token && this._wasUnauthenticated) {
             this._wasUnauthenticated = false;
             window.dispatchEvent(new CustomEvent('authenticated'));
@@ -87,14 +94,16 @@
         this._inactivationTimer = setTimeout(() => {
           clearInterval(this._renevalTimer);
           this.token = undefined;
-        });
+        }, this.inactivationTimeout);
       }
 
       _tokenChanged() {
-        if (this.token) {
-          window.localStorage.setItem('token', this.token);
-        } else {
-          window.localStorage.removeItem('token');
+        if (this._connectedCallbackDone) {
+          if (this.token) {
+            window.localStorage.setItem('token', this.token);
+          } else {
+            window.localStorage.removeItem('token');
+          }
         }
       }
     }

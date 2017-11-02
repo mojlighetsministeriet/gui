@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
 
 <link rel="import" href="mo-styles.html">
 <link rel="import" href="mo-if.html">
@@ -51,32 +52,65 @@
     <mo-jwt-request id="xhr"></mo-jwt-request>
 
     <mo-flipper id="authenticate-flipper">
+      <iron-form slot="front">
+        <form id="authenticate-form">
+          <paper-card alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
+            <div class="card-content">
+              <paper-input
+              id="authenticate-email"
+              label="E-postadress"
+              name="email"
+              type="email"
+              autocomplete="email"
+              autofocus
+              auto-validate
+              required
+              ></paper-input>
+              <paper-input
+              id="authenticate-password"
+              label="Lösenord"
+              name="password"
+              type="password"
+              autocomplete="password"
+              auto-validate
+              required
+              ></paper-input>
+              <mo-if if="[[_badUsernameOrPassword]]">
+                <p class="text-error">Felaktigt användarnamn eller lösenord</p>
+              </mo-if>
+            </div>
+            <div class="card-actions">
+              <paper-button on-click="flip">Glömt lösenord?</paper-button>
+              <paper-button on-click="authenticate">Logga in</paper-button>
+            </div>
+          </paper-card>
+        </form>
+      </iron-form>
 
-      <paper-card slot="front" alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
-        <div class="card-content">
-          <paper-input id="authenticate-email" label="E-postadress" type="email" autofocus></paper-input>
-          <paper-input id="authenticate-password" label="Lösenord" type="password"></paper-input>
-          <mo-if if="[[_badUsernameOrPassword]]">
-            <p class="text-error">Felaktigt användarnamn eller lösenord</p>
-          </mo-if>
-        </div>
-        <div class="card-actions">
-          <paper-button on-click="flip">Glömt lösenord?</paper-button>
-          <paper-button on-click="authenticate">Logga in</paper-button>
-        </div>
-      </paper-card>
-
-      <paper-card slot="back">
-        <div class="card-content">
-          <h1>Återställ&nbsp;lösenord</h1>
-          <p>Fyll i din e-postadress så skickas instruktioner för att återställa lösenordet till dig.</p>
-          <paper-input id="reset-email" label="E-postadress" type="email"></paper-input>
-        </div>
-        <div class="card-actions">
-          <paper-button on-click="flip">Avbryt</paper-button>
-          <paper-button on-click="authenticate">Återställ</paper-button>
-        </div>
-      </paper-card>
+      <iron-form slot="back">
+        <form id="reset-form">
+          <paper-card>
+            <div class="card-content">
+              <h1>Återställ&nbsp;lösenord</h1>
+              <p>Fyll i din e-postadress så skickas instruktioner för att återställa lösenordet till dig.</p>
+              <paper-input
+                id="reset-email"
+                label="E-postadress"
+                name="email"
+                type="email"
+                autocomplete="email"
+                autofocus
+                auto-validate
+                required
+              ></paper-input>
+            </div>
+            <div class="card-actions">
+              <paper-button on-click="flip">Avbryt</paper-button>
+              <paper-button on-click="authenticate">Återställ</paper-button>
+            </div>
+          </paper-card>
+        </form>
+      </iron-form>
 
     </mo-flipper>
   </template>
@@ -121,12 +155,10 @@
             password: this.$['authenticate-password'].value
           }
         }).then((response) => {
-console.log('success authenticate', response);
           this._badUsernameOrPassword = false;
-          this.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.token } }));
+          window.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.body.token } }));
         }, (response) => {
-console.log('failed authenticate', response);
-          if (response.status === 404) {
+          if (response.status === 401) {
             this._badUsernameOrPassword = true;
             setTimeout(() => {
               this._badUsernameOrPassword = false;

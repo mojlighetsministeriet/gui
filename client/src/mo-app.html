@@ -1,19 +1,14 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
-<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
 <link rel="import" href="mo-token.html">
+<link rel="import" href="mo-dashboard-view.html">
 <link rel="import" href="mo-authenticate-view.html">
+<link rel="import" href="mo-not-found-view.html">
 
 <dom-module id="mo-app">
   <template>
@@ -27,10 +22,36 @@
         display: block;
         height: 100vh;
       }
+
+      iron-pages {
+        height: 100%;
+      }
     </style>
 
     <mo-token reneval-url="../api/identity-provider/token/renew"></mo-token>
-    <mo-authenticate-view></mo-authenticate-view>
+
+    <app-location
+        route="{{route}}"
+        url-space-regex="^[[rootPath]]">
+    </app-location>
+
+    <app-route
+        route="{{route}}"
+        pattern="[[rootPath]]:view"
+        data="{{routeData}}"
+        tail="{{subroute}}">
+    </app-route>
+
+    <iron-pages
+      selected="[[view]]"
+      attr-for-selected="name"
+      fallback-selection="not-found"
+      role="main"
+    >
+      <mo-dashboard-view name="dashboard"></mo-dashboard-view>
+      <mo-authenticate-view name="authenticate"></mo-authenticate-view>
+      <mo-not-found-view name="not-found"></mo-not-found-view>
+    </iron-pages>
   </template>
 
   <script>
@@ -39,19 +60,62 @@
 
       static get properties() {
         return {
+          view: {
+            type: String,
+            value: 'dashboard',
+            observer: '_viewChanged'
+          },
+          routeData: {
+            type: Object,
+            value: {}
+          },
+          subroute: String,
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
-          rootPath: String,
+          rootPath: String
         };
       }
 
-      connectedCallback() {
-        super.connectedCallback();
+      static get observers() {
+        return [
+          '_routeViewChanged(routeData.view)'
+        ];
+      }
+
+      constructor() {
+        super();
 
         // TODO: show mo-authenticate-view
-        window.addEventListener('unauthorized', () => {
-          console.error('The client is not authorized');
+        window.addEventListener('unauthenticated', () => {
+          this.view = 'authenticate';
         });
+
+        window.addEventListener('authenticated', () => {
+          this.view = this.routeData.view || 'dashboard';
+        });
+      }
+
+      _routeViewChanged(view) {
+        // If no view was found in the route data, view will be an empty string.
+        // Default to 'dashboard' in that case.
+        if (this.view !== 'authenticate') {
+          this.view = view || 'dashboard';
+        }
+      }
+
+      _viewChanged(view) {
+        // Load view import on demand. Show not found view if fails
+        const resolvedViewUrl = this.resolveUrl('mo-' + view + '-view.html');
+        Polymer.importHref(
+          resolvedViewUrl,
+          undefined,
+          this._showViewNotFound.bind(this),
+          true
+        );
+      }
+
+      _showViewNotFound() {
+        this.view = 'not-found';
       }
     }
 
