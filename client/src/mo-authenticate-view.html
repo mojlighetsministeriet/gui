@@ -57,25 +57,27 @@
           <paper-card alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
             <div class="card-content">
               <paper-input
-              id="authenticate-email"
-              label="E-postadress"
-              name="email"
-              type="email"
-              autocomplete="email"
-              autofocus
-              auto-validate
-              required
+                id="authenticate-email"
+                label="E-postadress"
+                name="email"
+                type="email"
+                autocomplete="email"
+                autofocus
+                auto-validate
+                required
+                on-keydown="_hideBadUsernameOrPasswordMessage"
               ></paper-input>
               <paper-input
-              id="authenticate-password"
-              label="Lösenord"
-              name="password"
-              type="password"
-              autocomplete="password"
-              auto-validate
-              required
+                id="authenticate-password"
+                label="Lösenord"
+                name="password"
+                type="password"
+                autocomplete="password"
+                auto-validate
+                required
+                on-keydown="_hideBadUsernameOrPasswordMessage"
               ></paper-input>
-              <mo-if if="[[_badUsernameOrPassword]]">
+              <mo-if if="[[_showBadUsernameOrPasswordMessage]]">
                 <p class="text-error">Felaktigt användarnamn eller lösenord</p>
               </mo-if>
             </div>
@@ -121,7 +123,7 @@
 
       static get properties() {
         return {
-          _badUsernameOrPassword: {
+          _showBadUsernameOrPasswordMessage: {
             type: Boolean,
             value: false
           }
@@ -133,6 +135,10 @@
         setTimeout(() => {
           this.$['authenticate-email'].focus();
         }, 0);
+      }
+
+      _hideBadUsernameOrPasswordMessage() {
+        this.set('_showBadUsernameOrPasswordMessage', false);
       }
 
       flip() {
@@ -155,14 +161,12 @@
             password: this.$['authenticate-password'].value
           }
         }).then((response) => {
-          this._badUsernameOrPassword = false;
+          this._showBadUsernameOrPasswordMessage = false;
           window.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.body.token } }));
         }, (response) => {
           if (response.status === 401) {
-            this._badUsernameOrPassword = true;
-            setTimeout(() => {
-              this._badUsernameOrPassword = false;
-            }, 10000);
+            this._showBadUsernameOrPasswordMessage = true;
+            this.$['authenticate-email'].focus();
           }
         });
       }
