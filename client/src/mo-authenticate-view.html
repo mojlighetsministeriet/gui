@@ -108,7 +108,7 @@
             </div>
             <div class="card-actions">
               <paper-button on-click="flip">Avbryt</paper-button>
-              <paper-button on-click="authenticate">Återställ</paper-button>
+              <paper-button on-click="reset">Återställ</paper-button>
             </div>
           </paper-card>
         </form>
@@ -126,15 +126,28 @@
           _showBadUsernameOrPasswordMessage: {
             type: Boolean,
             value: false
-          }
+          },
+          _authenticationData: Object
         };
       }
 
       connectedCallback() {
         super.connectedCallback();
+
         setTimeout(() => {
           this.$['authenticate-email'].focus();
         }, 0);
+
+        window.addEventListener('newtoken', (event) => {
+          let authenticationData;
+          try {
+            authenticationData = JSON.parse(event.detail.token.split('.')[1]);
+          } catch (exception) {} // eslint-disable-line no-empty
+
+          if (authenticationData) {
+            this._authenticationData = authenticationData;
+          }
+        });
       }
 
       _hideBadUsernameOrPasswordMessage() {
@@ -168,6 +181,18 @@
             this._showBadUsernameOrPasswordMessage = true;
             this.$['authenticate-email'].focus();
           }
+        });
+      }
+
+      reset() {
+        this.$.xhr.send({
+          url: `../api/identity-provider/account/[${this._authenticationData.sub}/reset-password`,
+          method: 'POST',
+          json: true
+        }).then((response) => {
+          console.log('instructions for password reset has been sent to your email');
+        }, (response) => {
+          console.error('failed to reset password');
         });
       }
     }
