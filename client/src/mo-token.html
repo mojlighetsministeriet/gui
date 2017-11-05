@@ -74,10 +74,13 @@
           json: true
         }).then((response) => {
           this.token = response.body.token;
+
           if (this.token && this._wasUnauthenticated) {
             this._wasUnauthenticated = false;
             window.dispatchEvent(new CustomEvent('authenticated'));
           }
+
+          this._dispatchAuthenticatedAccountUpdate();
         }, () => {
           this.token = undefined;
           this._wasUnauthenticated = true;
@@ -86,6 +89,19 @@
         this._renevalTimer = setTimeout(() => {
           this.renew();
         }, this.renevalTimeout);
+      }
+
+      _dispatchAuthenticatedAccountUpdate() {
+        if (this.token) {
+          let account;
+
+          try {
+            account = JSON.parse(atob(this.token.split('.')[1]));
+          } catch (exception) {}
+
+          window.dispatchEvent(new CustomEvent('authenticated.account.update', { detail: account }));
+        }
+
       }
 
       _resetInactivationTimer() {

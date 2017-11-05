@@ -105,6 +105,10 @@
           this._authenticated = true;
           this.view = this.routeData.view || 'dashboard';
         });
+
+        window.addEventListener('authenticated.account.update', (event) => {
+          console.debug('authenticated.account.update', event.detail);
+        });
       }
 
       _destroyToken() {
