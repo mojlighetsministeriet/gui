@@ -158,6 +158,7 @@
         const flipper = this.$['authenticate-flipper'];
         flipper.flip();
         if (flipper.flipped) {
+          this.$['reset-email'].value = this.$['authenticate-email'].value;
           this.$['reset-email'].focus();
         } else {
           this.$['authenticate-email'].focus();
