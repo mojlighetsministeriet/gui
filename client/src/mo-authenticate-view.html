@@ -186,9 +186,12 @@
 
       reset() {
         this.$.xhr.send({
-          url: `../api/identity-provider/account/[${this._authenticationData.sub}/reset-password`,
+          url: `../api/identity-provider/account/reset-token`,
           method: 'POST',
-          json: true
+          json: true,
+          body: {
+            email: this.$['reset-email'].value,
+          }
         }).then((response) => {
           console.log('instructions for password reset has been sent to your email');
         }, (response) => {
