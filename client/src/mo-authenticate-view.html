@@ -105,10 +105,16 @@
                 auto-validate
                 required
               ></paper-input>
+              <mo-if if="[[_showResetEmailSentConfirmation]]">
+                <p>Vi har skickat ett e-postmeddelande till den adress du angav med instruktioner för att återställa ditt lösenord.</p>
+              </mo-if>
+              <mo-if if="[[_showResetEmailSentError]]">
+                <p class="text-error">Ett fel uppstod när återställningen skulle genomföras, kontrollera adressen eller försök igen senare.</p>
+              </mo-if>
             </div>
             <div class="card-actions">
               <paper-button on-click="flip">Avbryt</paper-button>
-              <paper-button on-click="reset">Återställ</paper-button>
+              <paper-button on-click="reset" disabled$="[[_disableResetButton]]">Återställ</paper-button>
             </div>
           </paper-card>
         </form>
@@ -123,6 +129,18 @@
 
       static get properties() {
         return {
+          _showBadUsernameOrPasswordMessage: {
+            type: Boolean,
+            value: false
+          },
+          _showResetEmailSentConfirmation: {
+            type: Boolean,
+            value: false
+          },
+          _disableResetButton: {
+            type: Boolean,
+            value: false
+          },
           _showBadUsernameOrPasswordMessage: {
             type: Boolean,
             value: false
@@ -186,6 +204,8 @@
       }
 
       reset() {
+        this._disableResetButton = true;
+
         this.$.xhr.send({
           url: `../api/identity-provider/account/reset-token`,
           method: 'POST',
@@ -194,9 +214,12 @@
             email: this.$['reset-email'].value,
           }
         }).then((response) => {
-          console.log('instructions for password reset has been sent to your email');
+          this._showResetEmailSentError = false;
+          this._showResetEmailSentConfirmation = true;
         }, (response) => {
-          console.error('failed to reset password');
+          this._showResetEmailSentConfirmation = false;
+          this._showResetEmailSentError = true;
+          this._disableResetButton = false;
         });
       }
     }
