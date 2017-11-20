@@ -193,18 +193,18 @@
             password: this.$['authenticate-password'].value
           }
         }).then((response) => {
-          this._showBadUsernameOrPasswordMessage = false;
+          this.set('_showBadUsernameOrPasswordMessage', false);
           window.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.body.token } }));
         }, (response) => {
           if (response.status === 401) {
-            this._showBadUsernameOrPasswordMessage = true;
+            this.set('_showBadUsernameOrPasswordMessage', true);
             this.$['authenticate-email'].focus();
           }
         });
       }
 
       reset() {
-        this._disableResetButton = true;
+        this.set('_disableResetButton', true);
 
         this.$.xhr.send({
           url: `../api/identity-provider/account/reset-token`,
@@ -214,12 +214,14 @@
             email: this.$['reset-email'].value,
           }
         }).then((response) => {
-          this._showResetEmailSentError = false;
-          this._showResetEmailSentConfirmation = true;
+          this.set('_showResetEmailSentError', false);
+          this.set('_showResetEmailSentConfirmation', true);
         }, (response) => {
-          this._showResetEmailSentConfirmation = false;
-          this._showResetEmailSentError = true;
-          this._disableResetButton = false;
+          if (response.status === 400) {
+            this.set('_showResetEmailSentError', true);
+          }
+          this.set('_showResetEmailSentConfirmation', false);
+          this.set('_disableResetButton', false);
         });
       }
     }
