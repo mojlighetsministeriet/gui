@@ -2,7 +2,8 @@
   "entrypoint": "index.html",
   "shell": "src/mo-app.html",
   "fragments": [
-    "src/mo-authenticate-view.html"
+    "src/mo-authenticate-view.html",
+    "src/mo-dashboard-view.html"
   ],
   "sources": [
     "src/**/*",
