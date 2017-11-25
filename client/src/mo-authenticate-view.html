@@ -23,6 +23,12 @@
         width: 20rem;
         max-width: 100%;
         height: 32rem;
+        opacity: 1;
+        transition: opacity 0.5s ease-in-out;
+      }
+
+      mo-flipper.hidden {
+        opacity: 0;
       }
 
       paper-card {
@@ -51,7 +57,7 @@
 
     <mo-jwt-request id="xhr"></mo-jwt-request>
 
-    <mo-flipper id="authenticate-flipper">
+    <mo-flipper id="authenticate-flipper" class="hidden">
       <iron-form slot="front">
         <form id="authenticate-form">
           <paper-card alt="Möjlighetsministeriets inloggning" image="../assets/images/mojlighetsministeriet-224.png">
@@ -153,7 +159,9 @@
         super.connectedCallback();
 
         setTimeout(() => {
+          document.getElementById("page-spinner").classList.add("hidden");
           this.$['authenticate-email'].focus();
+          this.$['authenticate-flipper'].classList.remove('hidden');
         }, 0);
 
         window.addEventListener('newtoken', (event) => {
@@ -193,12 +201,17 @@
             password: this.$['authenticate-password'].value
           }
         }).then((response) => {
-          this.set('_showBadUsernameOrPasswordMessage', false);
+          this._hideBadUsernameOrPasswordMessage();
           window.dispatchEvent(new CustomEvent('newtoken', { detail: { token: response.body.token } }));
         }, (response) => {
           if (response.status === 401) {
             this.set('_showBadUsernameOrPasswordMessage', true);
             this.$['authenticate-email'].focus();
+
+            this.classList.add("wiggle");
+            setTimeout(() => {
+              this.classList.remove("wiggle");
+            }, 500);
           }
         });
       }
@@ -222,6 +235,11 @@
           }
           this.set('_showResetEmailSentConfirmation', false);
           this.set('_disableResetButton', false);
+
+          this.classList.add("wiggle");
+          setTimeout(() => {
+            this.classList.remove("wiggle");
+          }, 500);
         });
       }
     }
