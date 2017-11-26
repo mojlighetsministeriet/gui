@@ -8,10 +8,12 @@
 
 <link rel="import" href="mo-if.html">
 <link rel="import" href="mo-token.html">
+
 <link rel="import" href="mo-dashboard-view.html">
 <link rel="import" href="mo-authenticate-view.html">
 <link rel="import" href="mo-reset-password-view.html">
 <link rel="import" href="mo-not-found-view.html">
+<link rel="import" href="mo-forbidden-view.html">
 
 <dom-module id="mo-app">
   <template>
@@ -50,7 +52,8 @@
     </app-route>
 
     <iron-pages
-      selected="[[view]]"
+      id="pages"
+      selected="[[viewName]]"
       attr-for-selected="name"
       fallback-selection="not-found"
       role="main"
@@ -59,6 +62,7 @@
       <mo-authenticate-view name="authenticate"></mo-authenticate-view>
       <mo-reset-password-view name="reset-password"></mo-reset-password-view>
       <mo-not-found-view name="not-found"></mo-not-found-view>
+      <mo-forbidden-view name="forbidden"></mo-forbidden-view>
     </iron-pages>
   </template>
 
@@ -68,10 +72,10 @@
 
       static get properties() {
         return {
-          view: {
+          viewName: {
             type: String,
             value: 'dashboard',
-            observer: '_viewChanged'
+            observer: '_viewNameChanged'
           },
           routeData: {
             type: Object,
@@ -84,7 +88,8 @@
           _authenticated: {
             type: Boolean,
             value: false
-          }
+          },
+          _account: Object
         };
       }
 
@@ -99,16 +104,34 @@
 
         // TODO: show mo-authenticate-view
         window.addEventListener('unauthenticated', () => {
+console.log('unauthenticated');
           this._authenticated = false;
-          this.view = 'authenticate';
-        });
+          this._account = undefined;
+console.log(this.routeData);
 
-        window.addEventListener('authenticated', () => {
-          this._authenticated = true;
-          this.view = this.routeData.view || 'dashboard';
+          if (!this._canAccessView(this.routeData.view)) {
+            this.viewName = 'authenticate';
+          }
         });
 
         window.addEventListener('authenticated.account.update', (event) => {
+          this._authenticated = true;
+          this._account = event.detail;
+
+          if (
+            this.viewName === 'authenticate' &&
+            this.routeData.view &&
+            this.routeData.view !== this.viewName
+          ) {
+            if (this._canAccessView(this.routeData.view)) {
+              this.viewName = this.routeData.view;
+            } else if (this._authenticated) {
+              this.viewName = 'forbidden';
+            } else {
+              this.viewName = 'authenticate';
+            }
+          }
+
           console.debug('authenticated.account.update', event.detail);
         });
       }
@@ -117,17 +140,24 @@
         this.$.token.token = undefined;
       }
 
-      _routeViewChanged(view) {
-        // If no view was found in the route data, view will be an empty string.
-        // Default to 'dashboard' in that case.
-        if (this.view !== 'authenticate') {
-          this.view = view || 'dashboard';
+      _routeViewChanged(viewName) {
+        viewName = viewName || 'dashboard';
+        console.log('_routeViewChanged', viewName, this._account);
+
+        if (this._canAccessView(viewName)) {
+          this.viewName = viewName;
+        } else if (this._authenticated) {
+          this.viewName = 'forbidden';
+        } else {
+          this.viewName = 'authenticate';
         }
       }
 
-      _viewChanged(view) {
+      _viewNameChanged(viewName) {
+        console.log('_viewNameChanged', viewName);
+
         // Load view import on demand. Show not found view if fails
-        const resolvedViewUrl = this.resolveUrl('mo-' + view + '-view.html');
+        const resolvedViewUrl = this.resolveUrl('mo-' + viewName + '-view.html');
         Polymer.importHref(
           resolvedViewUrl,
           undefined,
@@ -136,8 +166,30 @@
         );
       }
 
+      _canAccessView(viewName) {
+        const view = this._getView(viewName);
+        if (!view) {
+          return false;
+        }
+        console.log('_canAccessView', view, view.requiredRole);
+
+        if (!view.requiredRole) {
+          return true;
+        }
+
+        if (this._account && this._account.roles && this._account.roles.includes(view.requiredRole)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      _getView(viewName) {
+        return this.$.pages.children[viewName];
+      }
+
       _showViewNotFound() {
-        this.view = 'not-found';
+        this.viewName = 'not-found';
       }
     }
 

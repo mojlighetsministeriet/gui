@@ -10,6 +10,12 @@
       static get is() { return 'mo-dashboard-view'; }
 
       static get properties() {
+        return {
+          requiredRole: {
+            type: String,
+            value: "user"
+          }
+        };
       }
     }
 

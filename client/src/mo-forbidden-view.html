@@ -1,0 +1,15 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="mo-forbidden-view">
+  <template>
+    <h1>Du har inte tillgång till den här vyn</h1>
+  </template>
+
+  <script>
+    class MoForbiddenView extends Polymer.Element {
+      static get is() { return 'mo-forbidden-view'; }
+    }
+
+    window.customElements.define(MoForbiddenView.is, MoForbiddenView);
+  </script>
+</dom-module>
