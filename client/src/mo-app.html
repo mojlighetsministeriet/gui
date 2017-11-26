@@ -104,10 +104,8 @@
 
         // TODO: show mo-authenticate-view
         window.addEventListener('unauthenticated', () => {
-console.log('unauthenticated');
           this._authenticated = false;
           this._account = undefined;
-console.log(this.routeData);
 
           if (!this._canAccessView(this.routeData.view)) {
             this.viewName = 'authenticate';
@@ -131,8 +129,6 @@ console.log(this.routeData);
               this.viewName = 'authenticate';
             }
           }
-
-          console.debug('authenticated.account.update', event.detail);
         });
       }
 
@@ -142,7 +138,6 @@ console.log(this.routeData);
 
       _routeViewChanged(viewName) {
         viewName = viewName || 'dashboard';
-        console.log('_routeViewChanged', viewName, this._account);
 
         if (this._canAccessView(viewName)) {
           this.viewName = viewName;
@@ -154,8 +149,6 @@ console.log(this.routeData);
       }
 
       _viewNameChanged(viewName) {
-        console.log('_viewNameChanged', viewName);
-
         // Load view import on demand. Show not found view if fails
         const resolvedViewUrl = this.resolveUrl('mo-' + viewName + '-view.html');
         Polymer.importHref(
@@ -171,7 +164,6 @@ console.log(this.routeData);
         if (!view) {
           return false;
         }
-        console.log('_canAccessView', view, view.requiredRole);
 
         if (!view.requiredRole) {
           return true;
