@@ -118,18 +118,22 @@
 
           const newViewName = this.routeData.view || 'dashboard';
 
-          if (
-            this.viewName === 'authenticate' &&
-            newViewName &&
-            newViewName !== this.viewName
-          ) {
-            if (this._canAccessView(newViewName)) {
-              this.viewName = newViewName;
-            } else if (this._authenticated) {
-              this.viewName = 'forbidden';
-            } else {
-              this.viewName = 'authenticate';
+          if (this._getView(newViewName)) {
+            if (
+              this.viewName === 'authenticate' &&
+              newViewName &&
+              newViewName !== this.viewName
+            ) {
+              if (this._canAccessView(newViewName)) {
+                this.viewName = newViewName;
+              } else if (this._authenticated) {
+                this.viewName = 'forbidden';
+              } else {
+                this.viewName = 'authenticate';
+              }
             }
+          } else {
+            this._showViewNotFound();
           }
         });
       }
