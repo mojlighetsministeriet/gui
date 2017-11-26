@@ -99,6 +99,10 @@
             account = JSON.parse(atob(this.token.split('.')[1]));
           } catch (exception) {}
 
+          if (account.roles) {
+            account.roles = account.roles.trim().split(/\s*,\s*/);
+          }
+
           window.dispatchEvent(new CustomEvent('authenticated.account.update', { detail: account }));
         }
 
