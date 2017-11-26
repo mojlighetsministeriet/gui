@@ -64,6 +64,8 @@
       <mo-not-found-view name="not-found"></mo-not-found-view>
       <mo-forbidden-view name="forbidden"></mo-forbidden-view>
     </iron-pages>
+
+    <paper-toast text="[[internalServerErrorMessage]]" id="internal-server-error-message" duration="7000"></paper-toast>
   </template>
 
   <script>
@@ -72,6 +74,10 @@
 
       static get properties() {
         return {
+          internalServerErrorMessage: {
+            type: String,
+            value: 'Oj då, ett tillfälligt fel har uppstått. Kontakta support om problemet kvarstår.'
+          },
           viewName: {
             type: String,
             value: 'dashboard',
@@ -135,6 +141,10 @@
           } else {
             this._showViewNotFound();
           }
+        });
+
+        window.addEventListener('servererror', () => {
+          this.$['internal-server-error-message'].open();
         });
       }
 
