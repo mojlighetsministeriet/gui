@@ -116,13 +116,15 @@
           this._authenticated = true;
           this._account = event.detail;
 
+          const newViewName = this.routeData.view || 'dashboard';
+
           if (
             this.viewName === 'authenticate' &&
-            this.routeData.view &&
-            this.routeData.view !== this.viewName
+            newViewName &&
+            newViewName !== this.viewName
           ) {
-            if (this._canAccessView(this.routeData.view)) {
-              this.viewName = this.routeData.view;
+            if (this._canAccessView(newViewName)) {
+              this.viewName = newViewName;
             } else if (this._authenticated) {
               this.viewName = 'forbidden';
             } else {
