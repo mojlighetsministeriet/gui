@@ -10,6 +10,7 @@ RUN cd client && yarn build
 
 # Create the final docker image
 FROM scratch
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=0 /go/src/github.com/mojlighetsministeriet/gui/client/build/es6-unbundled /client
 COPY --from=0 /go/src/github.com/mojlighetsministeriet/gui/gui /
 ENTRYPOINT ["/gui"]
