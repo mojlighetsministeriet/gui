@@ -1,4 +1,4 @@
-package main // import "github.com/mojlighetsministeriet/next/gui"
+package main // import "github.com/mojlighetsministeriet/gui"
 
 import (
 	"os"
