@@ -1,0 +1,3 @@
+- [ ] Authenticate with identity-provider
+- [ ] Lookup your name with person-register
+- [ ] Revoke authentification, session and white listing of JWT should be removed

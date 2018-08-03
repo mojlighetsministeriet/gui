@@ -1,59 +1,41 @@
-package main // import "github.com/mojlighetsministeriet/gui"
+package main // import "github.com/mojlighetsministeriet/next/gui"
 
 import (
-	"net/http"
+	"os"
+	"regexp"
 	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/mojlighetsministeriet/utils"
+	"github.com/mojlighetsministeriet/utils/server"
 )
 
-func startServer() {
-	server := echo.New()
+func main() {
+	useTLS := true
+	if os.Getenv("TLS") == "disable" {
+		useTLS = false
+	}
+	bodyLimit := utils.GetEnv("BODY_LIMIT", "5M")
 
-	server.Use(middleware.Gzip())
-	server.Use(middleware.Static("client"))
+	server := server.NewServer(useTLS, true, bodyLimit)
+
+	server.Use(middleware.Static("static"))
+
+	hasFileExtensionPattern := regexp.MustCompile("/[^\\./]+\\.[^\\./]+$")
 	server.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:    "client",
-		HTML5:   true,
-		Skipper: noHTML5IfAPICallSkipper,
+		Root:  "static",
+		HTML5: true,
+		Skipper: func(context echo.Context) bool {
+			path := context.Path()
+			if strings.HasPrefix(path, "/api/") || hasFileExtensionPattern.MatchString(path) {
+				return true
+			}
+
+			return false
+		},
+		Browse: false,
 	}))
 
-	err := server.Start(":" + utils.GetEnv("PORT", "80"))
-	if err != nil {
-		panic(err)
-	}
-}
-
-func noHTML5IfAPICallSkipper(context echo.Context) bool {
-	if strings.HasPrefix(context.Path(), "/api/") || strings.HasPrefix(context.Path(), "/assets/") || strings.HasPrefix(context.Path(), "/src/") || strings.HasPrefix(context.Path(), "/bower_components/") {
-		return true
-	}
-
-	return false
-}
-
-func respondEmptyBadRequest(context echo.Context) error {
-	return context.JSON(http.StatusBadRequest, []byte("{\"message\":\"Bad Request\"}"))
-}
-
-func respondOK(context echo.Context, data interface{}) error {
-	return context.JSON(http.StatusOK, data)
-}
-
-func respondEmptyOK(context echo.Context) error {
-	return context.JSONBlob(http.StatusOK, []byte("{\"message\":\"OK\"}"))
-}
-
-func respondNotFound(context echo.Context) error {
-	return context.JSONBlob(http.StatusNotFound, []byte("{\"message\":\"Not Found\"}"))
-}
-
-func respondInternalServerError(context echo.Context) error {
-	return context.JSONBlob(http.StatusInternalServerError, []byte("{\"message\":\"Internal Server Error\"}"))
-}
-
-func main() {
-	startServer()
+	server.Listen(":" + utils.GetEnv("PORT", "443"))
 }
