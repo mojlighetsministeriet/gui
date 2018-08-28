@@ -6,7 +6,8 @@ const email = document.querySelector('input[name="email"]');
 const password = document.querySelector('input[name="password"]');
 
 document.querySelector('#signin-button').addEventListener('click', () => {
-  jsonRequest('/api/session', {email, password}, 'POST').then((response) => {
+  const body = {email: email.value, password: password.value};
+  jsonRequest('/api/session', body, 'POST').then((response) => {
     console.log(response);
     state.authenticated = true;
   }).catch((sessionError) => {
